@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python/
+env/
+venv/
+.env
+
+# Jupyter/IPython
+.ipynb_checkpoints
+.ipynd_checkpoints
+
+# IDEs
+.vscode/
+.idea/
+
+# ML models and data (if they are very large or regenerated)
+/ml_pipeline/trained_models/*.pkl
+/data/raw_training_data.xlsx # You might want to version this, but if it's very large, ignore it.
+*.sqlite # For SQLite databases
