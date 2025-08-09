@@ -112,7 +112,7 @@ app.add_middleware(
 
 FRONTEND_URLS = os.getenv(
     "FRONTEND_URLS", 
-    "http://localhost:3000,http://localhost:5173,http://localhost:8080"
+    "https://findistress-web-app-frontend.netlify.app,http://localhost:5173,http://localhost:8080"
 ).split(",")
 
 app.add_middleware(
