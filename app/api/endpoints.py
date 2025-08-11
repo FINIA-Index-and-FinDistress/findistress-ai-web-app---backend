@@ -505,19 +505,92 @@ async def register_user(
             detail="Registration failed"
         )
 
+# @router.post("/login", response_model=Token)
+# async def login_for_access_token(
+#     request: Request,
+#     session: AsyncSession = Depends(get_async_session)
+# ):
+#     """User login with JWT tokens - supports JSON and form data."""
+#     try:
+#         content_type = request.headers.get("content-type", "").lower()
+#         logger.info(f"Login attempt with content-type: {content_type}")
+
+#         if "application/json" in content_type:
+#             try:
+#                 login_request = LoginRequest(**(await request.json()))
+#             except (ValueError, ValidationError) as e:
+#                 logger.error(f"Invalid JSON body: {e}")
+#                 raise HTTPException(
+#                     status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+#                     detail="Invalid JSON format: username and password required"
+#                 )
+#         elif "application/x-www-form-urlencoded" in content_type:
+#             body = await request.form()
+#             login_request = LoginRequest(username=body.get("username", ""), password=body.get("password", ""))
+#         else:
+#             raise HTTPException(
+#                 status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+#                 detail="Unsupported content type. Use application/json or application/x-www-form-urlencoded"
+#             )
+
+#         if not login_request.username or not login_request.password:
+#             logger.warning("Missing username or password in login request")
+#             raise HTTPException(
+#                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+#                 detail="Username and password are required"
+#             )
+
+#         user = await authenticate_user(login_request.username, login_request.password, session)
+        
+#         if not user:
+#             logger.warning(f"Failed login attempt for user: {login_request.username}")
+#             raise HTTPException(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 detail="Invalid credentials",
+#                 headers={"WWW-Authenticate": "Bearer"},
+#             )
+        
+#         if not user.is_active:
+#             logger.warning(f"Inactive user login attempt: {login_request.username}")
+#             raise HTTPException(
+#                 status_code=status.HTTP_400_BAD_REQUEST,
+#                 detail="Account inactive"
+#             )
+        
+#         token_data = await create_user_tokens(user, session)
+#         await session.commit()
+        
+#         logger.info(f"User logged in successfully: {user.username}")
+#         return Token(**token_data)
+        
+#     except HTTPException:
+#         await session.rollback()
+#         raise
+#     except Exception as e:
+#         await session.rollback()
+#         logger.error(f"Login failed with exception: {e}")
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"Login system error: {str(e)}"
+#         )
+
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
     request: Request,
     session: AsyncSession = Depends(get_async_session)
 ):
-    """User login with JWT tokens - supports JSON and form data."""
+    """FIXED: User login with JWT tokens - supports JSON and form data."""
     try:
         content_type = request.headers.get("content-type", "").lower()
         logger.info(f"Login attempt with content-type: {content_type}")
 
         if "application/json" in content_type:
             try:
-                login_request = LoginRequest(**(await request.json()))
+                login_data = await request.json()
+                login_request = LoginRequest(
+                    username=login_data.get("username", ""),
+                    password=login_data.get("password", "")
+                )
             except (ValueError, ValidationError) as e:
                 logger.error(f"Invalid JSON body: {e}")
                 raise HTTPException(
@@ -526,12 +599,23 @@ async def login_for_access_token(
                 )
         elif "application/x-www-form-urlencoded" in content_type:
             body = await request.form()
-            login_request = LoginRequest(username=body.get("username", ""), password=body.get("password", ""))
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-                detail="Unsupported content type. Use application/json or application/x-www-form-urlencoded"
+            login_request = LoginRequest(
+                username=body.get("username", ""), 
+                password=body.get("password", "")
             )
+        else:
+            # Default to JSON if content-type is unclear
+            try:
+                login_data = await request.json()
+                login_request = LoginRequest(
+                    username=login_data.get("username", ""),
+                    password=login_data.get("password", "")
+                )
+            except:
+                raise HTTPException(
+                    status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+                    detail="Unsupported content type. Use application/json or application/x-www-form-urlencoded"
+                )
 
         if not login_request.username or not login_request.password:
             logger.warning("Missing username or password in login request")
@@ -573,7 +657,7 @@ async def login_for_access_token(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Login system error: {str(e)}"
         )
-
+    
 @router.post("/token", response_model=Token)
 async def login_oauth2_form(
     form_data: OAuth2PasswordRequestForm = Depends(),
