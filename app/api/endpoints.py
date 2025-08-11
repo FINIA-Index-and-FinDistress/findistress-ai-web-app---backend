@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 import jwt
 from pydantic import BaseModel, ValidationError
+from app.auth.security import verify_refresh_token
 
 from app.database.database import get_async_session, async_transactional
 from app.database.models import (
@@ -610,6 +611,50 @@ async def login_oauth2_form(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Login system error"
+        )
+
+
+@router.post("/refresh", response_model=Token)
+async def refresh_access_token(
+    refresh_request: RefreshTokenRequest,
+    session: AsyncSession = Depends(get_async_session)
+):
+    """Refresh access token using valid refresh token."""
+    try:
+        logger.info("Token refresh request received")
+        
+        if not refresh_request.refresh_token:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Refresh token is required"
+            )
+        
+        # Verify refresh token and get user
+        user = await verify_refresh_token(refresh_request.refresh_token, session)
+        
+        if not user:
+            logger.warning("Invalid or expired refresh token")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired refresh token"
+            )
+        
+        # Generate new tokens
+        token_data = await create_user_tokens(user, session)
+        await session.commit()
+        
+        logger.info(f"Token refreshed successfully for user: {user.username}")
+        return Token(**token_data)
+        
+    except HTTPException:
+        await session.rollback()
+        raise
+    except Exception as e:
+        await session.rollback()
+        logger.error(f"Token refresh failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Token refresh failed"
         )
 
 # ================== USER PROFILE ENDPOINTS ==================
