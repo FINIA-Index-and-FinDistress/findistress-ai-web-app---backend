@@ -120,7 +120,7 @@ class ModelManager:
         
         # Return cached model
         if region in self.models_cache:
-            logger.debug(f"🔄 Using cached {region} model")
+            logger.debug(f"Using cached {region} model")
             return self.models_cache[region]
         
         model_path = config.AFR_MODEL_PATH if region == "AFR" else config.ROW_MODEL_PATH
@@ -132,7 +132,7 @@ class ModelManager:
                 raise FileNotFoundError(f"{region} model file not found: {model_path}")
             
             # Load pipeline model
-            logger.info(f"📦 Loading {region} pipeline model...")
+            logger.info(f"Loading {region} pipeline model...")
             model = joblib.load(model_path)
             
             # Validate pipeline structure
@@ -470,11 +470,11 @@ class ModelManager:
     def _create_analysis_message(self, probability: float, risk_level: str, factors: List[Dict]) -> str:
         """Create business-friendly analysis message."""
         if risk_level == "Low":
-            message = f"✅ This company shows strong financial health with only a {probability:.1%} chance of distress."
+            message = f"This company shows strong financial health with only a {probability:.1%} chance of distress."
         elif risk_level == "Medium":
-            message = f"⚠️ This company has moderate financial risk with a {probability:.1%} chance of distress."
+            message = f"This company has moderate financial risk with a {probability:.1%} chance of distress."
         else:
-            message = f"🚨 This company shows high financial risk with a {probability:.1%} chance of distress."
+            message = f"This company shows high financial risk with a {probability:.1%} chance of distress."
         
         if factors:
             top_factor = factors[0]['display_name']
@@ -499,24 +499,24 @@ class ModelManager:
         
         # Risk-level based recommendations
         if probability > 0.7:
-            recommendations.append("🔴 Immediate action: Review cash flow and reduce expenses")
-            recommendations.append("💰 Priority: Secure additional financing or credit facilities")
+            recommendations.append("Immediate action: Review cash flow and reduce expenses")
+            recommendations.append("Priority: Secure additional financing or credit facilities")
         elif probability > 0.4:
-            recommendations.append("🟡 Monitor: Keep close watch on financial performance metrics")
-            recommendations.append("📊 Analyze: Review operational efficiency and cost structure")
+            recommendations.append("Monitor: Keep close watch on financial performance metrics")
+            recommendations.append("Analyze: Review operational efficiency and cost structure")
         else:
-            recommendations.append("🟢 Maintain: Continue current financial management practices")
-            recommendations.append("📈 Optimize: Look for growth opportunities while maintaining stability")
+            recommendations.append("Maintain: Continue current financial management practices")
+            recommendations.append("Optimize: Look for growth opportunities while maintaining stability")
         
         # Factor-based recommendations
         if factors:
             top_factor = factors[0]
             if 'Credit' in top_factor['name']:
-                recommendations.append("🏦 Banking: Improve relationships with financial institutions")
+                recommendations.append("Banking: Improve relationships with financial institutions")
             elif 'GDP' in top_factor['name']:
-                recommendations.append("🌍 Economic: Consider market diversification strategies")
+                recommendations.append("Economic: Consider market diversification strategies")
             elif 'startup' in top_factor['name']:
-                recommendations.append("🚀 Growth: Focus on establishing stable revenue streams")
+                recommendations.append("Growth: Focus on establishing stable revenue streams")
         
         return recommendations[:4]  # Return top 4 recommendations
 

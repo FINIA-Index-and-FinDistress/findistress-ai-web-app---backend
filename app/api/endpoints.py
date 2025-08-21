@@ -12,7 +12,7 @@ import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Query, BackgroundTasks, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import and_, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession 
 from sqlmodel import select
 import jwt
 from pydantic import BaseModel, ValidationError
@@ -37,7 +37,7 @@ warnings.filterwarnings('ignore', category=pd.errors.SettingWithCopyWarning)
 
 router = APIRouter(prefix="/api/v1", tags=["Financial Distress API"])
 
-# ================== REQUEST/RESPONSE MODELS ==================
+# REQUEST/RESPONSE MODELS 
 class LoginRequest(BaseModel):
     """Login request model for JSON data."""
     username: str
@@ -100,7 +100,7 @@ class PredictionDetailResponse(BaseModel):
 from functools import lru_cache
 from typing import Optional
 
-# Fixed OptimizedPipelineDataProcessor class - Add missing method
+# OptimizedPipelineDataProcessor class 
 class OptimizedPipelineDataProcessor:
     """Optimized data processor with caching."""
     def __init__(self):
@@ -109,7 +109,7 @@ class OptimizedPipelineDataProcessor:
         self._processed_cache = None
     
     def load_training_data(self) -> pd.DataFrame:
-        """Load training data - FIXED: Added missing method"""
+        """Load training data. """
         return self.load_training_data_cached()
     
     @lru_cache(maxsize=1)
@@ -135,7 +135,7 @@ class OptimizedPipelineDataProcessor:
             raise HTTPException(status_code=500, detail="Training data unavailable")
     
     def preprocess_data(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Preprocess data following exact pipeline steps - FIXED VERSION."""
+        """Preprocess data following exact pipeline steps. """
         try:
             required_cols = [
                 'idstd', 'country2', 'region', 'year', 'car1', 'fin1', 'fin2', 'fin3', 'fin4', 'fin5',
@@ -156,7 +156,7 @@ class OptimizedPipelineDataProcessor:
             
             df2['Sector'] = df2['stra_sector'].map(config.SECTOR_MAPPINGS)
             
-            # FIXED: Create region2 column based on your pipeline logic
+            # FCreate region2 column based on the pipeline logic
             african_countries = [
                 'Angola', 'Bangladesh', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon',
                 'Central African Republic', 'Chad', 'Congo', "Cote d'Ivoire", 'DRC', 'Djibouti', 'Egypt',
@@ -177,14 +177,14 @@ class OptimizedPipelineDataProcessor:
                 'idstd', 'year', 'perf1', 'obst1', 'fin16', 'wk14', 'car1', 'fin33', 'Fin_bank',
                 'Fin_supplier', 'Fin_equity', 'Fin_other', 'Fem_wf', 'Fem_CEO', 'Pvt_Own', 'Con_Own',
                 'Exports', 'Edu', 'Innov', 'Transp', 'Gifting', 'Pol_Inst', 'Infor_Comp', 'Sector',
-                'Credit', 'WSI', 'WUI', 'GDP', 'PRIME', 'region2'  # Include region2
+                'Credit', 'WSI', 'WUI', 'GDP', 'PRIME', 'region2' 
             ]].copy()
             
             df3_row = df2_row[[
                 'idstd', 'year', 'perf1', 'obst1', 'fin16', 'wk14', 'car1', 'fin33', 'Fin_bank',
                 'Fin_supplier', 'Fin_equity', 'Fin_other', 'Fem_wf', 'Fem_CEO', 'Pvt_Own', 'Con_Own',
                 'Edu', 'Exports', 'Innov', 'Transp', 'Gifting', 'Pol_Inst', 'Infor_Comp', 'Size',
-                'Credit', 'Sector', 'WUI', 'WSI', 'PRIME', 'MarketCap', 'GPR', 'GDP', 'region2'  # Include region2
+                'Credit', 'Sector', 'WUI', 'WSI', 'PRIME', 'MarketCap', 'GPR', 'GDP', 'region2'  
             ]].copy()
             
             for df_region in [df3_afr, df3_row]:
@@ -244,132 +244,130 @@ class OptimizedPipelineDataProcessor:
             logger.warning(f"Could not process training data: {e}")
             return None
         
-# ================== CONFIGURATION AND PROCESSORS ==================
+# CONFIGURATION AND PROCESSORS 
 config = PipelineConfig()
 
-class PipelineDataProcessor:
-    """Data processor following pipeline steps."""
-    def __init__(self):
-        self._cached_data = None
-        self._cache_timestamp = None
+# class PipelineDataProcessor:
+#     """Data processor following pipeline steps."""
+#     def __init__(self):
+#         self._cached_data = None
+#         self._cache_timestamp = None
     
-    def load_training_data(self) -> pd.DataFrame:
-        """Load training data following pipeline format."""
-        try:
-            if not Path(config.TRAINING_DATA_PATH).exists():
-                raise FileNotFoundError(f"Training data not found: {config.TRAINING_DATA_PATH}")
+#     def load_training_data(self) -> pd.DataFrame:
+#         """Load training data following pipeline format."""
+#         try:
+#             if not Path(config.TRAINING_DATA_PATH).exists():
+#                 raise FileNotFoundError(f"Training data not found: {config.TRAINING_DATA_PATH}")
             
-            if self._cached_data is None:
-                self._cached_data = pd.read_excel(config.TRAINING_DATA_PATH)
-                self._cache_timestamp = datetime.now(timezone.utc)
-                logger.info(f"Loaded {len(self._cached_data)} training records")
+#             if self._cached_data is None:
+#                 self._cached_data = pd.read_excel(config.TRAINING_DATA_PATH)
+#                 self._cache_timestamp = datetime.now(timezone.utc)
+#                 logger.info(f"Loaded {len(self._cached_data)} training records")
             
-            return self._cached_data
+#             return self._cached_data
             
-        except Exception as e:
-            logger.error(f"Failed to load training data: {e}")
-            raise HTTPException(status_code=500, detail="Training data unavailable")
-    
-# Replace your PipelineDataProcessor.preprocess_data method with this fixed version:
+#         except Exception as e:
+#             logger.error(f"Failed to load training data: {e}")
+#             raise HTTPException(status_code=500, detail="Training data unavailable")
 
-def preprocess_data(self, df: pd.DataFrame) -> pd.DataFrame:
-    """Preprocess data following exact pipeline steps - FIXED VERSION."""
-    try:
-        required_cols = [
-            'idstd', 'country2', 'region', 'year', 'car1', 'fin1', 'fin2', 'fin3', 'fin4', 'fin5',
-            'fin16', 'fin33', 'gend2', 'gend3', 'gend4', 'gend6', 'wk14', 'car3', 'car2', 'car6',
-            'obst9', 'tr15', 't10', 't2', 'corr4', 'obst11', 'infor1', 'perf1', 'obst1', 'stra_sector',
-            'GDP', 'Credit', 'MarketCap', 'WUI', 'GPR', 'PRIME', 'WSI', 'size2'
-        ]
+# def preprocess_data(self, df: pd.DataFrame) -> pd.DataFrame:
+#     """Preprocess data following exact pipeline steps - FIXED VERSION."""
+#     try:
+#         required_cols = [
+#             'idstd', 'country2', 'region', 'year', 'car1', 'fin1', 'fin2', 'fin3', 'fin4', 'fin5',
+#             'fin16', 'fin33', 'gend2', 'gend3', 'gend4', 'gend6', 'wk14', 'car3', 'car2', 'car6',
+#             'obst9', 'tr15', 't10', 't2', 'corr4', 'obst11', 'infor1', 'perf1', 'obst1', 'stra_sector',
+#             'GDP', 'Credit', 'MarketCap', 'WUI', 'GPR', 'PRIME', 'WSI', 'size2'
+#         ]
         
-        df2 = df[required_cols].copy()
+#         df2 = df[required_cols].copy()
         
-        df2 = df2.rename(columns={
-            'fin1': 'Fin_int', 'fin2': 'Fin_bank', 'fin3': 'Fin_supplier', 'fin4': 'Fin_equity',
-            'fin5': 'Fin_other', 'gend2': 'Fem_wf', 'gend3': 'Fem_Wf_Non_Prod', 'gend4': 'Fem_CEO',
-            'gend6': 'Fem_Own', 'car3': 'For_Own', 'car2': 'Pvt_Own', 'car6': 'Con_Own',
-            'obst9': 'Edu', 'tr15': 'Exports', 't10': 'Innov', 't2': 'Transp', 'corr4': 'Gifting',
-            'obst11': 'Pol_Inst', 'infor1': 'Infor_Comp', 'size2': 'Size'
-        })
+#         df2 = df2.rename(columns={
+#             'fin1': 'Fin_int', 'fin2': 'Fin_bank', 'fin3': 'Fin_supplier', 'fin4': 'Fin_equity',
+#             'fin5': 'Fin_other', 'gend2': 'Fem_wf', 'gend3': 'Fem_Wf_Non_Prod', 'gend4': 'Fem_CEO',
+#             'gend6': 'Fem_Own', 'car3': 'For_Own', 'car2': 'Pvt_Own', 'car6': 'Con_Own',
+#             'obst9': 'Edu', 'tr15': 'Exports', 't10': 'Innov', 't2': 'Transp', 'corr4': 'Gifting',
+#             'obst11': 'Pol_Inst', 'infor1': 'Infor_Comp', 'size2': 'Size'
+#         })
         
-        df2['Sector'] = df2['stra_sector'].map(config.SECTOR_MAPPINGS)
+#         df2['Sector'] = df2['stra_sector'].map(config.SECTOR_MAPPINGS)
         
-        # FIXED: Create region2 column based on your pipeline logic
-        african_countries = [
-            'Angola', 'Bangladesh', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon',
-            'Central African Republic', 'Chad', 'Congo', "Cote d'Ivoire", 'DRC', 'Djibouti', 'Egypt',
-            'Equatorial Guinea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea',
-            'Lebanon', 'Lesotho', 'Liberia', 'Guineabissau', 'Kenya', 'Madagascar', 'Malawi',
-            'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger',
-            'Nigeria', 'Rwanda', 'Senegal', 'Seychelles', 'Sierra Leone', 'South Sudan',
-            'Southafrica', 'Sudan', 'Tanzania', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'
-        ]
+#         # Create region2 column based on the pipeline logic
+#         african_countries = [
+#             'Angola', 'Bangladesh', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cameroon',
+#             'Central African Republic', 'Chad', 'Congo', "Cote d'Ivoire", 'DRC', 'Djibouti', 'Egypt',
+#             'Equatorial Guinea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana', 'Guinea',
+#             'Lebanon', 'Lesotho', 'Liberia', 'Guineabissau', 'Kenya', 'Madagascar', 'Malawi',
+#             'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger',
+#             'Nigeria', 'Rwanda', 'Senegal', 'Seychelles', 'Sierra Leone', 'South Sudan',
+#             'Southafrica', 'Sudan', 'Tanzania', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'
+#         ]
         
-        df2.loc[df2['country2'].isin(african_countries), 'region2'] = 'AFR'
-        df2.loc[~df2['country2'].isin(african_countries), 'region2'] = 'ROW'
+#         df2.loc[df2['country2'].isin(african_countries), 'region2'] = 'AFR'
+#         df2.loc[~df2['country2'].isin(african_countries), 'region2'] = 'ROW'
         
-        df2_afr = df2[df2['region2'] == "AFR"]
-        df2_row = df2[df2['region2'] != "AFR"]
+#         df2_afr = df2[df2['region2'] == "AFR"]
+#         df2_row = df2[df2['region2'] != "AFR"]
         
-        df3_afr = df2_afr[[
-            'idstd', 'year', 'perf1', 'obst1', 'fin16', 'wk14', 'car1', 'fin33', 'Fin_bank',
-            'Fin_supplier', 'Fin_equity', 'Fin_other', 'Fem_wf', 'Fem_CEO', 'Pvt_Own', 'Con_Own',
-            'Exports', 'Edu', 'Innov', 'Transp', 'Gifting', 'Pol_Inst', 'Infor_Comp', 'Sector',
-            'Credit', 'WSI', 'WUI', 'GDP', 'PRIME', 'region2'  # Include region2
-        ]].copy()
+#         df3_afr = df2_afr[[
+#             'idstd', 'year', 'perf1', 'obst1', 'fin16', 'wk14', 'car1', 'fin33', 'Fin_bank',
+#             'Fin_supplier', 'Fin_equity', 'Fin_other', 'Fem_wf', 'Fem_CEO', 'Pvt_Own', 'Con_Own',
+#             'Exports', 'Edu', 'Innov', 'Transp', 'Gifting', 'Pol_Inst', 'Infor_Comp', 'Sector',
+#             'Credit', 'WSI', 'WUI', 'GDP', 'PRIME', 'region2'  
+#         ]].copy()
         
-        df3_row = df2_row[[
-            'idstd', 'year', 'perf1', 'obst1', 'fin16', 'wk14', 'car1', 'fin33', 'Fin_bank',
-            'Fin_supplier', 'Fin_equity', 'Fin_other', 'Fem_wf', 'Fem_CEO', 'Pvt_Own', 'Con_Own',
-            'Edu', 'Exports', 'Innov', 'Transp', 'Gifting', 'Pol_Inst', 'Infor_Comp', 'Size',
-            'Credit', 'Sector', 'WUI', 'WSI', 'PRIME', 'MarketCap', 'GPR', 'GDP', 'region2'  # Include region2
-        ]].copy()
+#         df3_row = df2_row[[
+#             'idstd', 'year', 'perf1', 'obst1', 'fin16', 'wk14', 'car1', 'fin33', 'Fin_bank',
+#             'Fin_supplier', 'Fin_equity', 'Fin_other', 'Fem_wf', 'Fem_CEO', 'Pvt_Own', 'Con_Own',
+#             'Edu', 'Exports', 'Innov', 'Transp', 'Gifting', 'Pol_Inst', 'Infor_Comp', 'Size',
+#             'Credit', 'Sector', 'WUI', 'WSI', 'PRIME', 'MarketCap', 'GPR', 'GDP', 'region2' 
+#         ]].copy()
         
-        for df_region in [df3_afr, df3_row]:
-            df_region['distress'] = np.where(
-                (df_region['perf1'] < 0) & (
-                    (df_region['obst1'] == 100) |
-                    (df_region['fin33'] == 1) |
-                    (df_region['fin16'] == 1)
-                ), 1, 0
-            )
-            df_region['startup'] = np.where(
-                (df_region['wk14'] < 5) & (df_region['car1'] < 5), 1, 0
-            )
+#         for df_region in [df3_afr, df3_row]:
+#             df_region['distress'] = np.where(
+#                 (df_region['perf1'] < 0) & (
+#                     (df_region['obst1'] == 100) |
+#                     (df_region['fin33'] == 1) |
+#                     (df_region['fin16'] == 1)
+#                 ), 1, 0
+#             )
+#             df_region['startup'] = np.where(
+#                 (df_region['wk14'] < 5) & (df_region['car1'] < 5), 1, 0
+#             )
         
-        df3_afr.fillna(0, inplace=True)
-        df3_row.fillna(0, inplace=True)
+#         df3_afr.fillna(0, inplace=True)
+#         df3_row.fillna(0, inplace=True)
         
-        percentage_cols = [
-            'Fin_bank', 'Fin_supplier', 'Fin_equity', 'Fin_other', 'Fem_wf', 'Fem_CEO',
-            'Pvt_Own', 'Con_Own', 'Edu', 'Exports', 'Innov', 'Transp', 'Gifting',
-            'Pol_Inst', 'Infor_Comp', 'Credit', 'PRIME', 'GDP'
-        ]
+#         percentage_cols = [
+#             'Fin_bank', 'Fin_supplier', 'Fin_equity', 'Fin_other', 'Fem_wf', 'Fem_CEO',
+#             'Pvt_Own', 'Con_Own', 'Edu', 'Exports', 'Innov', 'Transp', 'Gifting',
+#             'Pol_Inst', 'Infor_Comp', 'Credit', 'PRIME', 'GDP'
+#         ]
         
-        for col in percentage_cols:
-            if col in df3_afr.columns:
-                df3_afr[col] = df3_afr[col].apply(lambda x: x / 100 if x > 1 else x)
-                df3_afr[col] = df3_afr[col].apply(lambda x: 0 if x < 0 else x)
-            if col in df3_row.columns:
-                df3_row[col] = df3_row[col].apply(lambda x: x / 100 if x > 1 else x)
-                df3_row[col] = df3_row[col].apply(lambda x: 0 if x < 0 else x)
+#         for col in percentage_cols:
+#             if col in df3_afr.columns:
+#                 df3_afr[col] = df3_afr[col].apply(lambda x: x / 100 if x > 1 else x)
+#                 df3_afr[col] = df3_afr[col].apply(lambda x: 0 if x < 0 else x)
+#             if col in df3_row.columns:
+#                 df3_row[col] = df3_row[col].apply(lambda x: x / 100 if x > 1 else x)
+#                 df3_row[col] = df3_row[col].apply(lambda x: 0 if x < 0 else x)
         
-        if 'MarketCap' in df3_row.columns:
-            df3_row['MarketCap'] = df3_row['MarketCap'].apply(lambda x: x / 100 if x > 1 else x)
-            df3_row['MarketCap'] = df3_row['MarketCap'].apply(lambda x: 0 if x < 0 else x)
+#         if 'MarketCap' in df3_row.columns:
+#             df3_row['MarketCap'] = df3_row['MarketCap'].apply(lambda x: x / 100 if x > 1 else x)
+#             df3_row['MarketCap'] = df3_row['MarketCap'].apply(lambda x: 0 if x < 0 else x)
         
-        # Return concatenated data with region2 column intact
-        return pd.concat([df3_afr, df3_row], ignore_index=True)
+#         # Return concatenated data with region2 column intact
+#         return pd.concat([df3_afr, df3_row], ignore_index=True)
         
-    except Exception as e:
-        logger.error(f"Preprocessing failed: {e}")
-        raise HTTPException(status_code=500, detail="Data processing error")
+#     except Exception as e:
+#         logger.error(f"Preprocessing failed: {e}")
+#         raise HTTPException(status_code=500, detail="Data processing error")
 
 # data_processor = PipelineDataProcessor()
 data_processor = OptimizedPipelineDataProcessor()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/token")
 
-# ================== AUTHENTICATION DEPENDENCIES ==================
+# AUTHENTICATION DEPENDENCIES
 async def get_current_user(token: str = Depends(oauth2_scheme), session: AsyncSession = Depends(get_async_session)):
     """Authenticate user with JWT token - Enhanced error handling."""
     credentials_exception = HTTPException(
@@ -440,7 +438,7 @@ async def get_current_admin_user(current_user: User = Depends(get_current_user))
         )
     return current_user
 
-# ================== AUTHENTICATION ENDPOINTS ==================
+# AUTHENTICATION ENDPOINTS
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(
     register_request: RegisterRequest,
@@ -579,7 +577,7 @@ async def login_for_access_token(
     request: Request,
     session: AsyncSession = Depends(get_async_session)
 ):
-    """FIXED: User login with JWT tokens - supports JSON and form data."""
+    """User login with JWT tokens - supports JSON and form data."""
     try:
         content_type = request.headers.get("content-type", "").lower()
         logger.info(f"Login attempt with content-type: {content_type}")
@@ -741,7 +739,7 @@ async def login_oauth2_form(
 #             detail="Token refresh failed"
 #         )
 
-# ================== USER PROFILE ENDPOINTS ==================
+# USER PROFILE ENDPOINTS 
 @router.get("/users/me", response_model=UserResponse)
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """Get current user information."""
@@ -1012,7 +1010,7 @@ async def delete_user_account(
             detail="Account deletion failed"
         )
 
-# ================== ADMIN ENDPOINTS ==================
+# ADMIN ENDPOINTS 
 @router.post("/admin/init-first-admin", response_model=UserResponse)
 @async_transactional
 async def initialize_first_admin(
@@ -1298,7 +1296,7 @@ async def list_all_users(
             detail="Failed to retrieve user list"
         )
 
-# ================== PREDICTION ENDPOINTS ==================
+# PREDICTION ENDPOINTS 
 @router.post("/predictions/predict", response_model=PredictionOutput)
 @async_transactional
 async def predict_financial_distress(
@@ -1373,7 +1371,7 @@ async def get_prediction_history(
     session: AsyncSession = Depends(get_async_session),
     limit: int = Query(default=20, le=100)
 ):
-    """Get user prediction history - FRONTEND COMPATIBLE VERSION."""
+    """Get user prediction history."""
     try:
         result = await session.execute(
             select(PredictionLog)
@@ -1786,7 +1784,7 @@ async def clear_predictions(
             detail=f"Clear operation failed: {str(e)}"
         )
 
-# ================== DASHBOARD AND ANALYTICS ENDPOINTS ==================
+#  DASHBOARD AND ANALYTICS ENDPOINTS 
 @router.get("/dashboard")
 async def get_dashboard_data(
     current_user: User = Depends(get_current_user),
@@ -1976,7 +1974,6 @@ async def get_dashboard_data(
             "error": str(e)
         }
 
-# In your endpoints.py file, replace the get_analytics_data_fixed function with this:
 
 @router.get("/analytics")
 async def get_analytics_data_fixed(
@@ -2357,7 +2354,7 @@ async def get_insights_data(
             "dataQuality": "Error",
             "lastUpdated": datetime.now(timezone.utc).isoformat()}
     
-# FIXED: Enhanced insights endpoint
+# Enhanced insights endpoint
 @router.get("/insights/fast")
 async def get_insights_data_fast(
     current_user: User = Depends(get_current_user),
