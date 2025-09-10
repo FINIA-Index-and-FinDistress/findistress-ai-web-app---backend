@@ -22,24 +22,23 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # Optional: create a Dockerfile if missing at repo root
       - name: Create Dockerfile if missing
         run: |
           if [ ! -f Dockerfile ]; then
             cat > Dockerfile <<'EOF'
-            FROM python:3.11-slim
-            ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
-            WORKDIR /app
-            COPY requirements.txt /app/ 2>/dev/null || true
-            RUN if [ -f requirements.txt ]; then \
-                  pip install --no-cache-dir -r requirements.txt ; \
-                else \
-                  pip install --no-cache-dir fastapi uvicorn[standard] lightgbm shap scikit-learn pandas joblib python-dotenv ; \
-                fi
-            COPY . /app
-            EXPOSE 8000
-            CMD ["bash","-lc","uvicorn app.main:app --host 0.0.0.0 --port 8000 || uvicorn main:app --host 0.0.0.0 --port 8000"]
-            EOF
+      FROM python:3.11-slim
+      ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+      WORKDIR /app
+      COPY requirements.txt /app/ 2>/dev/null || true
+      RUN if [ -f requirements.txt ]; then \
+            pip install --no-cache-dir -r requirements.txt ; \
+          else \
+            pip install --no-cache-dir fastapi uvicorn[standard] lightgbm shap scikit-learn pandas joblib python-dotenv ; \
+          fi
+      COPY . /app
+      EXPOSE 8000
+      CMD ["bash","-lc","uvicorn app.main:app --host 0.0.0.0 --port 8000 || uvicorn main:app --host 0.0.0.0 --port 8000"]
+      EOF
           fi
 
       - name: Login to ACR
