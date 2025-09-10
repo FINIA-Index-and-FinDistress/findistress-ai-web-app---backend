@@ -1,17 +1,21 @@
-name: Build and Push to ACR
+# .github/workflows/deploy.yml
+name: Build and Deploy to Azure Web App (Container)
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
+  workflow_dispatch: {}
 
 env:
-  ACR_NAME: findistressai           # e.g. fdpacr12345
+  AZURE_RG: fdp-rg
+  AZURE_WEBAPP_NAME: findistress      # <-- change to your web app name
+  ACR_NAME: findistressai                 # <-- change to your ACR name (no .azurecr.io)
   IMAGE_NAME: financial-distress-api
+  IMAGE_TAG: latest
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,8 +25,18 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Login to ACR
+        run: az acr login --name $ACR_NAME
+
       - name: Build and Push Docker image
         run: |
-          az acr login --name $ACR_NAME
-          docker build -t $ACR_NAME.azurecr.io/$IMAGE_NAME:latest .
-          docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:latest
+          docker build -t $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG .
+          docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG
+
+      - name: Point Web App to the new image
+        run: |
+          az webapp config container set \
+            -g $AZURE_RG -n $AZURE_WEBAPP_NAME \
+            --docker-custom-image-name $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG \
+            --docker-registry-server-url https://$ACR_NAME.azurecr.io
+          az webapp restart -g $AZURE_RG -n $AZURE_WEBAPP_NAME
