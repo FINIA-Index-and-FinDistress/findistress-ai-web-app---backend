@@ -1,3 +1,75 @@
+name: Build & Push to Azure ACR (auto-create Dockerfile)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: {}
+
+env:
+  # 👇 EDIT THESE
+  ACR_NAME: findistressai           # <--- your ACR short name (not the FQDN)
+  IMAGE_NAME: financial-distress-api
+  IMAGE_TAG: latest                 # or use ${{ github.sha }} for immutable tags
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Create a minimal Dockerfile if none exists in the repo root
+      - name: Create Dockerfile if missing
+        run: |
+          if [ ! -f Dockerfile ]; then
+            echo "No Dockerfile found. Creating a default FastAPI Dockerfile..."
+            cat > Dockerfile <<'EOF'
+            FROM python:3.11-slim
+
+            ENV PYTHONDONTWRITEBYTECODE=1 \
+                PYTHONUNBUFFERED=1
+
+            WORKDIR /app
+
+            # If requirements.txt exists, use it; otherwise install sensible defaults
+            COPY requirements.txt /app/ 2>/dev/null || true
+            RUN if [ -f requirements.txt ]; then \
+                  pip install --no-cache-dir -r requirements.txt ; \
+                else \
+                  pip install --no-cache-dir fastapi uvicorn[standard] lightgbm shap scikit-learn pandas joblib python-dotenv ; \
+                fi
+
+            # Copy code
+            COPY . /app
+
+            # Simple runtime launcher that guesses your app module
+            RUN printf '%s\n' '#!/usr/bin/env bash' \
+                'set -e' \
+                'if [ -f app/main.py ]; then MOD="app.main:app";' \
+                'elif [ -f main.py ]; then MOD="main:app";' \
+                'else MOD="${APP_MODULE:-main:app}"; fi' \
+                'exec uvicorn "$MOD" --host 0.0.0.0 --port 8000' \
+                > /app/start.sh && chmod +x /app/start.sh
+
+            EXPOSE 8000
+            CMD ["/app/start.sh"]
+            EOF
+          else
+            echo "Dockerfile already present. Using existing Dockerfile."
+          fi
+
+      - name: Log in to ACR
+        run: az acr login --name $ACR_NAME
+
+      - name: Build & push image to ACR
+        run: |
+          docker build -t $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG .
+          docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG
 # .github/workflows/deploy.yml
 name: Build and Deploy to Azure Web App (Container)
 
@@ -7,9 +79,9 @@ on:
   workflow_dispatch: {}
 
 env:
-  AZURE_RG: fdp-rg
+  AZURE_RG: FinTech
   AZURE_WEBAPP_NAME: findistress      # <-- change to your web app name
-  ACR_NAME: findistressai                 # <-- change to your ACR name (no .azurecr.io)
+  ACR_NAME: findistressai-dbfrh6bgerdrbdfw                 # <-- change to your ACR name (no .azurecr.io)
   IMAGE_NAME: financial-distress-api
   IMAGE_TAG: latest
 
